@@ -3,14 +3,12 @@ from mysql.connector import Error
 
 class DatabaseManager:
     def __init__(self, database='SmartGymDB', user='admin', password='gym123'):
-        """Initialize the database connection variables."""
         self.database = database
         self.user = user
         self.password = password
         self.connection = None
 
     def connect(self):
-        """Establish the database connection using Kali's Unix Socket."""
         try:
             self.connection = mysql.connector.connect(
                 unix_socket='/run/mysqld/mysqld.sock',  
@@ -25,12 +23,10 @@ class DatabaseManager:
             return False
 
     def disconnect(self):
-        """Close the database connection."""
         if self.connection and self.connection.is_connected():
             self.connection.close()
 
     def execute_query(self, query, params=None):
-        """Execute a query that modifies data (INSERT, UPDATE, DELETE)."""
         try:
             self.connect()
             cursor = self.connection.cursor()
