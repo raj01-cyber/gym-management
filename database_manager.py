@@ -11,7 +11,7 @@ class DatabaseManager:
     def connect(self):
         try:
             self.connection = mysql.connector.connect(
-                unix_socket='/run/mysqld/mysqld.sock',  
+                unix_socket='/run/mysqld/mysqld.sock', 
                 database=self.database,
                 user=self.user,
                 password=self.password
@@ -19,7 +19,7 @@ class DatabaseManager:
             if self.connection.is_connected():
                 return True
         except Error as e:
-            print(f"Error while connecting to MySQL: {e}")
+            print(f"Database Connection Error: {e}")
             return False
 
     def disconnect(self):
@@ -30,39 +30,26 @@ class DatabaseManager:
         try:
             self.connect()
             cursor = self.connection.cursor()
-            if params:
-                cursor.execute(query, params)
-            else:
-                cursor.execute(query)
+            cursor.execute(query, params) if params else cursor.execute(query)
             self.connection.commit()
             cursor.close()
             return True
         except Error as e:
-            print(f"Error executing query: {e}")
+            print(f"Query Execution Error: {e}")
             return False
         finally:
             self.disconnect()
 
     def fetch_all(self, query, params=None):
-        """Execute a query that retrieves data (SELECT)."""
         try:
             self.connect()
             cursor = self.connection.cursor(dictionary=True)
-            if params:
-                cursor.execute(query, params)
-            else:
-                cursor.execute(query)
+            cursor.execute(query, params) if params else cursor.execute(query)
             result = cursor.fetchall()
             cursor.close()
             return result
         except Error as e:
-            print(f"Error fetching data: {e}")
+            print(f"Data Fetch Error: {e}")
             return []
         finally:
             self.disconnect()
-            
-if __name__ == "__main__":
-    db = DatabaseManager()
-    print("Testing connection...")
-    plans = db.fetch_all("SELECT * FROM Membership_Plans")
-    print("Found Plans:", plans)
