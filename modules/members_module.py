@@ -94,7 +94,6 @@ class MembersUI:
         if not selected: return messagebox.showwarning("Target Error", "Highlight a record row first.")
         mid = self.tree.item(selected, 'values')[0]
 
-        # Enforce Section 5.3 Business Integrity Isolation Rules
         checks = self.db.fetch_all("SELECT COUNT(*) as count FROM Payments WHERE MemberID = %s", (mid,))
         if checks and checks[0]['count'] > 0:
             return messagebox.showerror("Database Constraint Error", "Cascade blocked: Financial ledgers are linked to this entity profile.")
