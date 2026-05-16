@@ -16,8 +16,7 @@ class DatabaseManager:
                 user=self.user,
                 password=self.password
             )
-            if self.connection.is_connected():
-                return True
+            return True if self.connection.is_connected() else False
         except Error as e:
             print(f"Database Connection Error: {e}")
             return False
