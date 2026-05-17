@@ -44,7 +44,6 @@ class AnalyticsUI:
         elif mode == "Plan Base Yield Metrics":
             self.tree["columns"] = ("Plan Index Name", "Enrolled Member Base", "True Derived Yield Metrics")
             for col in self.tree["columns"]: self.tree.heading(col, text=col)
-            # FIXED LOGIC Math check: 0 members yields exactly $0 revenue now
             query = "SELECT p.PlanName, COUNT(m.MemberID) as Base, (COUNT(m.MemberID) * p.Cost) as Revenue FROM Membership_Plans p LEFT JOIN Members m ON p.PlanID = m.PlanID GROUP BY p.PlanID"
             for r in self.db.fetch_all(query):
                 self.tree.insert("", "end", values=(r['PlanName'], r['Base'], f"${r['Revenue'] or 0.00}"))
