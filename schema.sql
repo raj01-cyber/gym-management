@@ -28,7 +28,7 @@ CREATE TABLE Members (
     Status ENUM('Active', 'Expired', 'Cancelled') DEFAULT 'Active',
     FOREIGN KEY (PlanID) REFERENCES Membership_Plans(PlanID) ON DELETE RESTRICT,
     INDEX idx_member_email (Email)
-);
+) AUTO_INCREMENT = 2001;
 
 CREATE TABLE Payments (
     PaymentID INT AUTO_INCREMENT PRIMARY KEY,
@@ -36,6 +36,8 @@ CREATE TABLE Payments (
     Amount DECIMAL(10, 2) NOT NULL,
     PaymentDate DATE NOT NULL,
     PaymentMethod VARCHAR(50) NOT NULL,
+    CoveredMonth VARCHAR(20) NOT NULL,
+    BillingPeriod VARCHAR(30) NOT NULL, 
     FOREIGN KEY (MemberID) REFERENCES Members(MemberID) ON DELETE RESTRICT
 );
 

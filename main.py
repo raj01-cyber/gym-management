@@ -38,34 +38,48 @@ class SmartGymApp:
         self.pass_entry = ttk.Entry(auth_frame, font=("Helvetica", 11), show="*")
         self.pass_entry.pack(fill="x", pady=(0, 10))
 
-        tk.Label(auth_frame, text="Select Workspace Role:", font=("Helvetica", 11), bg="#ffffff").pack(anchor="w")
-        self.role_combo = ttk.Combobox(auth_frame, values=["Admin", "Trainer"], state="readonly")
-        self.role_combo.current(0)
-        self.role_combo.pack(fill="x", pady=(0, 20))
+        if mode == "register":
+            tk.Label(auth_frame, text="Confirm Password:", font=("Helvetica", 11), bg="#ffffff").pack(anchor="w")
+            self.confirm_entry = ttk.Entry(auth_frame, font=("Helvetica", 11), show="*")
+            self.confirm_entry.pack(fill="x", pady=(0, 10))
+            
+            tk.Label(auth_frame, text="Select Workspace Role:", font=("Helvetica", 11), bg="#ffffff").pack(anchor="w")
+            self.role_combo = ttk.Combobox(auth_frame, values=["Admin", "Trainer"], state="readonly")
+            self.role_combo.current(0)
+            self.role_combo.pack(fill="x", pady=(0, 20))
 
-        if mode == "login":
-            tk.Button(auth_frame, text="Authenticate", font=("Helvetica", 11, "bold"), bg="#007bff", fg="white", bd=0, command=self.process_login).pack(fill="x")
-            tk.Button(auth_frame, text="Create New Account", font=("Helvetica", 10), bg="#ffffff", fg="#007bff", bd=0, command=lambda: self.show_auth_screen("register")).pack(fill="x", pady=(10, 0))
-        else:
             tk.Button(auth_frame, text="Register System Account", font=("Helvetica", 11, "bold"), bg="#28a745", fg="white", bd=0, command=self.process_registration).pack(fill="x")
             tk.Button(auth_frame, text="Back to Login", font=("Helvetica", 10), bg="#ffffff", fg="#6c757d", bd=0, command=lambda: self.show_auth_screen("login")).pack(fill="x", pady=(10, 0))
+        else:
+            tk.Button(auth_frame, text="Authenticate", font=("Helvetica", 11, "bold"), bg="#007bff", fg="white", bd=0, command=self.process_login).pack(fill="x", pady=(10, 0))
+            tk.Button(auth_frame, text="Create New Account", font=("Helvetica", 10), bg="#ffffff", fg="#007bff", bd=0, command=lambda: self.show_auth_screen("register")).pack(fill="x", pady=(10, 0))
 
     def process_login(self):
-        user, pwd, r = self.user_entry.get().strip(), self.pass_entry.get().strip(), self.role_combo.get()
+        user, pwd = self.user_entry.get().strip(), self.pass_entry.get().strip()
         if not user or not pwd: return messagebox.showwarning("Warning", "Fields cannot be blank.")
         
         hashed_attempt = hashlib.sha256(pwd.encode('utf-8')).hexdigest()
-        record = self.db.fetch_all("SELECT PasswordHash, Role FROM Users WHERE Username = %s AND Role = %s", (user, r))
+        record = self.db.fetch_all("SELECT PasswordHash, Role FROM Users WHERE Username = %s", (user,))
 
         if record and record[0]['PasswordHash'] == hashed_attempt:
             self.current_user = user; self.current_role = record[0]['Role']
             self.create_main_dashboard()
         else:
-            messagebox.showerror("Error", "Invalid Credentials or role mismatch.")
+            messagebox.showerror("Error", "Invalid Credentials.")
 
     def process_registration(self):
-        user, pwd, r = self.user_entry.get().strip(), self.pass_entry.get().strip(), self.role_combo.get()
-        if not user or not pwd: return
+        user, pwd = self.user_entry.get().strip(), self.pass_entry.get().strip()
+        confirm, r = self.confirm_entry.get().strip(), self.role_combo.get()
+        
+        if not user or not pwd or not confirm: 
+            return messagebox.showwarning("Validation Error", "All input values required.")
+        if pwd != confirm:
+            return messagebox.showerror("Security Error", "Passwords do not match!")
+            
+        collision = self.db.fetch_all("SELECT Username FROM Users WHERE Username = %s", (user,))
+        if collision:
+            return messagebox.showerror("Registration Conflict", f"The identifier '{user}' is already registered.")
+
         hashed = hashlib.sha256(pwd.encode('utf-8')).hexdigest()
         if self.db.execute_query("INSERT INTO Users (Username, PasswordHash, Role) VALUES (%s, %s, %s)", (user, hashed, r)):
             messagebox.showinfo("Success", "Registered! Log in now.")
@@ -80,7 +94,7 @@ class SmartGymApp:
         self.content_frame = tk.Frame(self.root, bg="#f4f4f9")
         self.content_frame.pack(side="right", fill="both", expand=True, padx=20, pady=20)
 
-        routes = [("Members Module", lambda: MembersUI(self.content_frame, self.db))]
+        routes = [("Gym Members Profile", lambda: MembersUI(self.content_frame, self.db))]
         if self.current_role == "Admin":
             routes.append(("Process Payments", lambda: PaymentsUI(self.content_frame, self.db)))
             routes.append(("Analytics & Reports", lambda: AnalyticsUI(self.content_frame, self.db)))
@@ -90,3 +104,8 @@ class SmartGymApp:
             tk.Button(sidebar, text=text, font=("Helvetica", 11), bg="#34495e", fg="white", bd=0, pady=8, command=command).pack(fill="x", pady=4, padx=10)
 
         MembersUI(self.content_frame, self.db)
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = SmartGymApp(root)
+    root.mainloop()
