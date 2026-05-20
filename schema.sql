@@ -45,3 +45,30 @@ INSERT INTO Membership_Plans (PlanName, Cost, DurationDays) VALUES
 ('Basic Monthly', 50.00, 30), 
 ('Premium Monthly', 80.00, 30), 
 ('Annual Pass', 500.00, 365);
+
+CREATE TABLE Classes (
+    ClassID INT AUTO_INCREMENT PRIMARY KEY,
+    ClassName VARCHAR(50) NOT NULL,
+    ScheduleTime DATETIME NOT NULL,
+    Capacity INT NOT NULL
+);
+
+CREATE TABLE Class_Bookings (
+    BookingID INT AUTO_INCREMENT PRIMARY KEY,
+    ClassID INT NOT NULL,
+    MemberID INT NOT NULL,
+    FOREIGN KEY (ClassID) REFERENCES Classes(ClassID) ON DELETE CASCADE,
+    FOREIGN KEY (MemberID) REFERENCES Members(MemberID) ON DELETE CASCADE
+);
+
+CREATE TABLE Attendance (
+    LogID INT AUTO_INCREMENT PRIMARY KEY,
+    MemberID INT NOT NULL,
+    CheckInTime DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (MemberID) REFERENCES Members(MemberID) ON DELETE CASCADE
+);
+
+INSERT INTO Classes (ClassName, ScheduleTime, Capacity) VALUES 
+('Morning Yoga', '2026-05-25 08:00:00', 15), 
+('HIIT Extreme', '2026-05-25 17:30:00', 20),
+('Powerlifting 101', '2026-05-26 18:00:00', 10);

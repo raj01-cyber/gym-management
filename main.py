@@ -6,6 +6,7 @@ from database_manager import DatabaseManager
 from modules.members_module import MembersUI
 from modules.payments_module import PaymentsUI
 from modules.analytics_module import AnalyticsUI
+from modules.operations_module import OperationsUI
 
 class SmartGymApp:
     def __init__(self, root):
@@ -94,11 +95,14 @@ class SmartGymApp:
         self.content_frame = tk.Frame(self.root, bg="#f4f4f9")
         self.content_frame.pack(side="right", fill="both", expand=True, padx=20, pady=20)
 
-        routes = [("Gym Members Profile", lambda: MembersUI(self.content_frame, self.db))]
+        routes = [
+            ("Members Profile", lambda: MembersUI(self.content_frame, self.db)),
+            ("Floor Operations", lambda: OperationsUI(self.content_frame, self.db)) # <-- ADD THIS LINE!
+        ]
         if self.current_role == "Admin":
             routes.append(("Process Payments", lambda: PaymentsUI(self.content_frame, self.db)))
             routes.append(("Analytics & Reports", lambda: AnalyticsUI(self.content_frame, self.db)))
-        routes.append(("Disconnect", lambda: self.show_auth_screen("login")))
+        routes.append(("Logout", lambda: self.show_auth_screen("login")))
         
         for text, command in routes:
             tk.Button(sidebar, text=text, font=("Helvetica", 11), bg="#34495e", fg="white", bd=0, pady=8, command=command).pack(fill="x", pady=4, padx=10)
