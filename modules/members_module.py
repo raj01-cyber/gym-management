@@ -18,7 +18,7 @@ class MembersUI:
         tk.Label(search_frame, text="Global Search (Name, Email, Phone):", bg="#f4f4f9").pack(side="left")
         self.search_entry = ttk.Entry(search_frame, width=30)
         self.search_entry.pack(side="left", padx=10)
-        tk.Button(search_frame, text="Search Network", command=self.search_members, bg="#17a2b8", fg="white").pack(side="left")
+        tk.Button(search_frame, text="Search", command=self.search_members, bg="#17a2b8", fg="white").pack(side="left")
         tk.Button(search_frame, text="Clear", command=self.load_members_data, bg="#6c757d", fg="white").pack(side="left", padx=5)
 
         form_frame = tk.Frame(self.parent_frame, bg="#ffffff", padx=10, pady=10, bd=1, relief="groove")
@@ -42,8 +42,8 @@ class MembersUI:
         if plans: self.plan_combo.current(0)
         
         tk.Button(form_frame, text="Add Member", bg="#28a745", fg="white", command=self.add_member).grid(row=3, column=0, pady=10)
-        tk.Button(form_frame, text="Update Parameter", bg="#ffc107", command=self.update_member).grid(row=3, column=1)
-        tk.Button(form_frame, text="Remove Profile", bg="#dc3545", fg="white", command=self.delete_member).grid(row=3, column=2)
+        tk.Button(form_frame, text="Update", bg="#ffc107", command=self.update_member).grid(row=3, column=1)
+        tk.Button(form_frame, text="Remove Member", bg="#dc3545", fg="white", command=self.delete_member).grid(row=3, column=2)
 
         self.tree = ttk.Treeview(self.parent_frame, columns=("Gym-ID", "First Name", "Last Name", "Email Address", "Phone Number", "Assigned Plan"), show="headings")
         for col in self.tree["columns"]: self.tree.heading(col, text=col)

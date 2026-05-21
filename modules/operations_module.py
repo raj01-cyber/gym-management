@@ -17,7 +17,7 @@ class OperationsUI:
 
         tab_attendance = tk.Frame(notebook, bg="#ffffff")
         tab_bookings = tk.Frame(notebook, bg="#ffffff")
-        notebook.add(tab_attendance, text="Log Attendance")
+        notebook.add(tab_attendance, text="Take Attendance")
         notebook.add(tab_bookings, text="Class Bookings")
 
         self.build_attendance_tab(tab_attendance)
@@ -36,7 +36,7 @@ class OperationsUI:
         self.att_combo.pack(side="left", padx=5)
         if members: self.att_combo.current(0)
 
-        tk.Button(ctrl_frame, text="Log Facility Entry", bg="#28a745", fg="white", command=self.log_attendance).pack(side="left", padx=15)
+        tk.Button(ctrl_frame, text="Entry", bg="#28a745", fg="white", command=self.log_attendance).pack(side="left", padx=15)
 
         self.att_tree = ttk.Treeview(frame, columns=("Log ID", "Gym-ID", "Name", "Check-in Timestamp"), show="headings")
         for col in self.att_tree["columns"]: self.att_tree.heading(col, text=col)

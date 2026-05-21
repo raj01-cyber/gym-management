@@ -11,7 +11,7 @@ from modules.operations_module import OperationsUI
 class SmartGymApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Smart Gym Engine - Enterprise Platform")
+        self.root.title("Gym Management System")
         self.root.geometry("1150x750")
         self.root.configure(bg="#f4f4f9")
         
