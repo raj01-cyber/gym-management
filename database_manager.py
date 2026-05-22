@@ -2,16 +2,19 @@ import mysql.connector
 from mysql.connector import Error
 
 class DatabaseManager:
-    def __init__(self, database='SmartGymDB', user='admin', password='gym123'):
+    def __init__(self, database='SmartGymDB', user='root', password='', host='localhost', port=3306):
         self.database = database
         self.user = user
         self.password = password
+        self.host = host
+        self.port = port
         self.connection = None
 
     def connect(self):
         try:
             self.connection = mysql.connector.connect(
-                unix_socket='/run/mysqld/mysqld.sock', 
+                host=self.host, 
+                port=self.port,
                 database=self.database,
                 user=self.user,
                 password=self.password
