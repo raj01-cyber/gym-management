@@ -35,17 +35,25 @@ class MembersUI:
         self.phone_entry = ttk.Entry(form_frame); self.phone_entry.grid(row=1, column=3, padx=5, pady=5)
 
         tk.Label(form_frame, text="Assigned Plan:", bg="#ffffff").grid(row=2, column=0, padx=5, pady=5)
+        # FIXED: Changed MEMBERSHIP_PLANS to Membership_Plans
         plans = self.db.fetch_all("SELECT PlanID, PlanName FROM Membership_Plans")
         self.plan_dict = {p['PlanName']: p['PlanID'] for p in plans}
         self.plan_combo = ttk.Combobox(form_frame, values=list(self.plan_dict.keys()), state="readonly")
         self.plan_combo.grid(row=2, column=1, padx=5, pady=5)
         if plans: self.plan_combo.current(0)
         
-        tk.Button(form_frame, text="Add Member", bg="#28a745", fg="white", command=self.add_member).grid(row=3, column=0, pady=10)
-        tk.Button(form_frame, text="Update", bg="#ffc107", command=self.update_member).grid(row=3, column=1)
-        tk.Button(form_frame, text="Remove Member", bg="#dc3545", fg="white", command=self.delete_member).grid(row=3, column=2)
+        tk.Label(form_frame, text="Status:", bg="#ffffff").grid(row=2, column=2, padx=5, pady=5)
+        self.status_combo = ttk.Combobox(form_frame, values=["Active", "Expired", "Cancelled"], state="readonly")
+        self.status_combo.grid(row=2, column=3, padx=5, pady=5)
+        self.status_combo.current(0)
+        
+        btn_frame = tk.Frame(form_frame, bg="#ffffff")
+        btn_frame.grid(row=3, column=0, columnspan=4, pady=15)
+        tk.Button(btn_frame, text="Add Member", bg="#28a745", fg="white", command=self.add_member, width=15).pack(side="left", padx=10)
+        tk.Button(btn_frame, text="Update Selected", bg="#ffc107", command=self.update_member, width=15).pack(side="left", padx=10)
+        tk.Button(btn_frame, text="Remove Member", bg="#dc3545", fg="white", command=self.delete_member, width=15).pack(side="left", padx=10)
 
-        self.tree = ttk.Treeview(self.parent_frame, columns=("Gym-ID", "First Name", "Last Name", "Email Address", "Phone Number", "Assigned Plan"), show="headings")
+        self.tree = ttk.Treeview(self.parent_frame, columns=("Gym-ID", "First Name", "Last Name", "Email Address", "Phone Number", "Assigned Plan", "Status"), show="headings")
         for col in self.tree["columns"]: self.tree.heading(col, text=col)
         self.tree.pack(fill="both", expand=True)
         self.tree.bind("<Double-1>", self.fill_fields)
@@ -61,6 +69,7 @@ class MembersUI:
         return True
 
     def check_duplicates(self, email, phone, exclude_id=None):
+        # FIXED: Changed MEMBERS to Members
         query = "SELECT Email, Phone FROM Members WHERE (Email = %s OR Phone = %s)"
         params = [email, phone]
         if exclude_id:
@@ -78,57 +87,86 @@ class MembersUI:
 
     def load_members_data(self):
         for row in self.tree.get_children(): self.tree.delete(row)
-        for row in self.db.fetch_all("SELECT m.MemberID, m.FirstName, m.LastName, m.Email, m.Phone, p.PlanName FROM Members m JOIN Membership_Plans p ON m.PlanID = p.PlanID"):
-            self.tree.insert("", "end", values=(row['MemberID'], row['FirstName'], row['LastName'], row['Email'], row['Phone'], row['PlanName']))
+        # FIXED: Changed MEMBERS to Members and MEMBERSHIP_PLANS to Membership_Plans
+        for row in self.db.fetch_all("SELECT m.MemberID, m.FirstName, m.LastName, m.Email, m.Phone, p.PlanName, m.Status FROM Members m JOIN Membership_Plans p ON m.PlanID = p.PlanID"):
+            self.tree.insert("", "end", values=(row['MemberID'], row['FirstName'], row['LastName'], row['Email'], row['Phone'], row['PlanName'], row['Status']))
 
     def add_member(self):
-        fn, ln, em, ph, pl = self.fname_entry.get().strip(), self.lname_entry.get().strip(), self.email_entry.get().strip(), self.phone_entry.get().strip(), self.plan_combo.get()
-        if not all([fn, ln, em, ph, pl]): return messagebox.showwarning("Error", "All parameter values are required.")
+        fn, ln, em, ph, pl, st = self.fname_entry.get().strip(), self.lname_entry.get().strip(), self.email_entry.get().strip(), self.phone_entry.get().strip(), self.plan_combo.get(), self.status_combo.get()
+        if not all([fn, ln, em, ph, pl, st]): return messagebox.showwarning("Error", "All parameter values are required.")
         if not self.validate_inputs(em, ph): return
         if self.check_duplicates(em, ph): return
 
-        if self.db.execute_query("INSERT INTO Members (FirstName, LastName, Email, Phone, JoinDate, PlanID) VALUES (%s,%s,%s,%s,%s,%s)", (fn, ln, em, ph, date.today(), self.plan_dict[pl])):
+        # FIXED: Changed MEMBERS to Members
+        if self.db.execute_query("INSERT INTO Members (FirstName, LastName, Email, Phone, JoinDate, Status, PlanID) VALUES (%s,%s,%s,%s,%s,%s,%s)", (fn, ln, em, ph, date.today(), st, self.plan_dict[pl])):
             messagebox.showinfo("Success", "Registered Successfully!")
             self.load_members_data()
+            self.clear_fields()
 
     def update_member(self):
         sel = self.tree.focus()
-        if not sel: return
+        if not sel: 
+            messagebox.showwarning("Selection Required", "Please double-click a member from the table below before updating.")
+            return
+            
         mid = self.tree.item(sel, 'values')[0]
-        fn, ln, em, ph, pl = self.fname_entry.get().strip(), self.lname_entry.get().strip(), self.email_entry.get().strip(), self.phone_entry.get().strip(), self.plan_combo.get()
+        fn, ln, em, ph, pl, st = self.fname_entry.get().strip(), self.lname_entry.get().strip(), self.email_entry.get().strip(), self.phone_entry.get().strip(), self.plan_combo.get(), self.status_combo.get()
         
+        if not all([fn, ln, em, ph, pl, st]): 
+            return messagebox.showwarning("Error", "All parameter values are required.")
+            
         if not self.validate_inputs(em, ph): return
         if self.check_duplicates(em, ph, exclude_id=mid): return
         
-        if self.db.execute_query("UPDATE Members SET FirstName=%s, LastName=%s, Email=%s, Phone=%s, PlanID=%s WHERE MemberID=%s", (fn, ln, em, ph, self.plan_dict[pl], mid)):
-            messagebox.showinfo("Success", "Parameters Updated.")
+        # FIXED: Changed MEMBERS to Members
+        if self.db.execute_query("UPDATE Members SET FirstName=%s, LastName=%s, Email=%s, Phone=%s, Status=%s, PlanID=%s WHERE MemberID=%s", (fn, ln, em, ph, st, self.plan_dict[pl], mid)):
+            messagebox.showinfo("Success", f"Parameters Updated for Gym-ID: {mid}")
             self.load_members_data()
+            self.clear_fields()
 
     def delete_member(self):
         sel = self.tree.focus()
-        if not sel: return
+        if not sel: 
+            messagebox.showwarning("Selection Required", "Please select a member to delete.")
+            return
+            
         mid = self.tree.item(sel, 'values')[0]
+        # FIXED: Changed PAYMENTS to Payments
         chk = self.db.fetch_all("SELECT COUNT(*) as count FROM Payments WHERE MemberID = %s", (mid,))
         if chk and chk[0]['count'] > 0: return messagebox.showerror("Error", "Linked financial logs exist. Wipe blocked.")
-        if messagebox.askyesno("Confirm", "Delete record?"):
+        
+        if messagebox.askyesno("Confirm", f"Are you sure you want to delete Gym-ID: {mid}?"):
+            # FIXED: Changed MEMBERS to Members
             self.db.execute_query("DELETE FROM Members WHERE MemberID = %s", (mid,))
             self.load_members_data()
+            self.clear_fields()
 
     def search_members(self):
         t = f"%{self.search_entry.get().strip()}%"
         for row in self.tree.get_children(): self.tree.delete(row)
-        query = """SELECT m.MemberID, m.FirstName, m.LastName, m.Email, m.Phone, p.PlanName 
+        # FIXED: Changed MEMBERS to Members and MEMBERSHIP_PLANS to Membership_Plans
+        query = """SELECT m.MemberID, m.FirstName, m.LastName, m.Email, m.Phone, p.PlanName, m.Status 
                    FROM Members m JOIN Membership_Plans p ON m.PlanID = p.PlanID 
                    WHERE m.FirstName LIKE %s OR m.LastName LIKE %s OR m.Email LIKE %s OR m.Phone LIKE %s"""
         for row in self.db.fetch_all(query, (t, t, t, t)):
-            self.tree.insert("", "end", values=(row['MemberID'], row['FirstName'], row['LastName'], row['Email'], row['Phone'], row['PlanName']))
+            self.tree.insert("", "end", values=(row['MemberID'], row['FirstName'], row['LastName'], row['Email'], row['Phone'], row['PlanName'], row['Status']))
 
     def fill_fields(self, e):
         sel = self.tree.focus()
         if not sel: return
         v = self.tree.item(sel, 'values')
-        self.fname_entry.delete(0, tk.END); self.fname_entry.insert(0, v[1])
-        self.lname_entry.delete(0, tk.END); self.lname_entry.insert(0, v[2])
-        self.email_entry.delete(0, tk.END); self.email_entry.insert(0, v[3])
-        self.phone_entry.delete(0, tk.END); self.phone_entry.insert(0, v[4])
+        self.clear_fields()
+        self.fname_entry.insert(0, v[1])
+        self.lname_entry.insert(0, v[2])
+        self.email_entry.insert(0, v[3])
+        self.phone_entry.insert(0, v[4])
         self.plan_combo.set(v[5])
+        self.status_combo.set(v[6])
+        
+    def clear_fields(self):
+        self.fname_entry.delete(0, tk.END)
+        self.lname_entry.delete(0, tk.END)
+        self.email_entry.delete(0, tk.END)
+        self.phone_entry.delete(0, tk.END)
+        if self.plan_combo['values']: self.plan_combo.current(0)
+        self.status_combo.current(0)

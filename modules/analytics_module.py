@@ -135,7 +135,7 @@ class AnalyticsUI:
         d2 = self.db.fetch_all(q2, tuple(params))
         
         lbls2 = [d['MonthLbl'] for d in d2]
-        vols2 = [float(d['rev']) for d2 in d2 for k, d2 in d2.items() if k == 'rev'] 
+        # vols2 = [float(d['rev']) for d2 in d2 for k, d2 in d2.items() if k == 'rev'] 
         vols2 = [float(d['rev']) for d in d2]
 
         if vols2:
