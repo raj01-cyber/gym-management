@@ -10,7 +10,7 @@ class PaymentsUI:
 
     def build_ui(self):
         for widget in self.parent_frame.winfo_children(): widget.destroy()
-        tk.Label(self.parent_frame, text="Process Membership Payments (Pre-Paid Engine)", font=("Helvetica", 18, "bold"), bg="#f4f4f9").pack(anchor="w", pady=(0, 10))
+        tk.Label(self.parent_frame, text="Process Membership Payments", font=("Helvetica", 18, "bold"), bg="#f4f4f9").pack(anchor="w", pady=(0, 10))
 
         form_frame = tk.Frame(self.parent_frame, bg="#ffffff", padx=10, pady=10, bd=1, relief="groove")
         form_frame.pack(fill="x", pady=(0, 20))

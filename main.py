@@ -28,7 +28,7 @@ class SmartGymApp:
         auth_frame = tk.Frame(self.root, bg="#ffffff", padx=40, pady=40, bd=1, relief="solid")
         auth_frame.place(relx=0.5, rely=0.5, anchor="center")
 
-        title_text = "Secure System Login" if mode == "login" else "New User Registration"
+        title_text = "Login" if mode == "login" else "New User Registration"
         tk.Label(auth_frame, text=title_text, font=("Helvetica", 16, "bold"), bg="#ffffff").pack(pady=(0, 20))
 
         tk.Label(auth_frame, text="Username:", font=("Helvetica", 11), bg="#ffffff").pack(anchor="w")
@@ -49,24 +49,32 @@ class SmartGymApp:
             self.role_combo.current(0)
             self.role_combo.pack(fill="x", pady=(0, 20))
 
-            tk.Button(auth_frame, text="Register System Account", font=("Helvetica", 11, "bold"), bg="#28a745", fg="white", bd=0, command=self.process_registration).pack(fill="x")
+            tk.Button(auth_frame, text="Register Account", font=("Helvetica", 11, "bold"), bg="#28a745", fg="white", bd=0, command=self.process_registration).pack(fill="x")
             tk.Button(auth_frame, text="Back to Login", font=("Helvetica", 10), bg="#ffffff", fg="#6c757d", bd=0, command=lambda: self.show_auth_screen("login")).pack(fill="x", pady=(10, 0))
         else:
-            tk.Button(auth_frame, text="Authenticate", font=("Helvetica", 11, "bold"), bg="#007bff", fg="white", bd=0, command=self.process_login).pack(fill="x", pady=(10, 0))
+            tk.Label(auth_frame, text="Select Login Role:", font=("Helvetica", 11), bg="#ffffff").pack(anchor="w", pady=(10, 0))
+            self.login_role_var = tk.StringVar(value="Admin") 
+            
+            radio_frame = tk.Frame(auth_frame, bg="#ffffff")
+            radio_frame.pack(fill="x", pady=(0, 15))
+            tk.Radiobutton(radio_frame, text="Admin", variable=self.login_role_var, value="Admin", bg="#ffffff", font=("Helvetica", 10)).pack(side="left", padx=(0, 15))
+            tk.Radiobutton(radio_frame, text="Trainer", variable=self.login_role_var, value="Trainer", bg="#ffffff", font=("Helvetica", 10)).pack(side="left")
+            tk.Button(auth_frame, text="Login", font=("Helvetica", 11, "bold"), bg="#007bff", fg="white", bd=0, command=self.process_login).pack(fill="x", pady=(10, 0))
             tk.Button(auth_frame, text="Create New Account", font=("Helvetica", 10), bg="#ffffff", fg="#007bff", bd=0, command=lambda: self.show_auth_screen("register")).pack(fill="x", pady=(10, 0))
 
     def process_login(self):
         user, pwd = self.user_entry.get().strip(), self.pass_entry.get().strip()
+        selected_role = self.login_role_var.get()
         if not user or not pwd: return messagebox.showwarning("Warning", "Fields cannot be blank.")
         
         hashed_attempt = hashlib.sha256(pwd.encode('utf-8')).hexdigest()
-        record = self.db.fetch_all("SELECT PasswordHash, Role FROM Users WHERE Username = %s", (user,))
+        record = self.db.fetch_all("SELECT PasswordHash, Role FROM Users WHERE Username = %s AND Role = %s", (user, selected_role))
 
         if record and record[0]['PasswordHash'] == hashed_attempt:
             self.current_user = user; self.current_role = record[0]['Role']
             self.create_main_dashboard()
         else:
-            messagebox.showerror("Error", "Invalid Credentials.")
+            messagebox.showerror("Error", "Invalid Credentials or Incorrect Role Selected.")
 
     def process_registration(self):
         user, pwd = self.user_entry.get().strip(), self.pass_entry.get().strip()
@@ -97,7 +105,7 @@ class SmartGymApp:
 
         routes = [
             ("Members Profile", lambda: MembersUI(self.content_frame, self.db)),
-            ("Floor Operations", lambda: OperationsUI(self.content_frame, self.db)) # <-- ADD THIS LINE!
+            ("Attendence & Bookings", lambda: OperationsUI(self.content_frame, self.db))
         ]
         if self.current_role == "Admin":
             routes.append(("Process Payments", lambda: PaymentsUI(self.content_frame, self.db)))

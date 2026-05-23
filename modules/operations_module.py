@@ -10,7 +10,7 @@ class OperationsUI:
 
     def build_ui(self):
         for widget in self.parent_frame.winfo_children(): widget.destroy()
-        tk.Label(self.parent_frame, text="Floor Operations (Classes & Attendance)", font=("Helvetica", 18, "bold"), bg="#f4f4f9").pack(anchor="w", pady=(0, 10))
+        tk.Label(self.parent_frame, text="Classes & Attendance", font=("Helvetica", 18, "bold"), bg="#f4f4f9").pack(anchor="w", pady=(0, 10))
 
         notebook = ttk.Notebook(self.parent_frame)
         notebook.pack(fill="both", expand=True)
