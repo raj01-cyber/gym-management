@@ -14,7 +14,7 @@ class AnalyticsUI:
     def build_ui(self):
         for widget in self.parent_frame.winfo_children(): widget.destroy()
         
-        tk.Label(self.parent_frame, text="Time-Series Business Intelligence", font=("Helvetica", 18, "bold"), bg="#f4f4f9").pack(anchor="w", pady=(0, 10))
+        tk.Label(self.parent_frame, text="Analytics & Reports", font=("Helvetica", 18, "bold"), bg="#f4f4f9").pack(anchor="w", pady=(0, 10))
 
         ctrl_frame = tk.Frame(self.parent_frame, bg="#f4f4f9")
         ctrl_frame.pack(fill="x", pady=5)
